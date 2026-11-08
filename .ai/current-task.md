@@ -23,6 +23,7 @@
 - [x] 4. **Git Commit & GitHub Remote Verknüpfung:**
   - Git konfiguriert (Autor: Andreas Schmitt <62250169+Schmitt-A@users.noreply.github.com>).
   - Remote `origin https://github.com/Schmitt-A/BarkDog.git` angebunden und `origin/main` (Initial commit) gefetcht.
-  - Sauberer Release-Commit (`3c50347`) auf `main` erstellt, der 1 Commit vor `origin/main` liegt.
-- [ ] 5. **Push zu GitHub durchführen / Authentifizierung:**
-  - Bereit zum Push auf GitHub (`origin main`). Da GitHub für Push-Operationen Authentifizierung (Personal Access Token oder SSH-Schlüssel) verlangt, klären, welcher Authentifizierungsweg gewünscht ist.
+  - Sauberer Release-Commit (`40d7d17`) auf `main` erstellt.
+- [x] 5. **Push zu GitHub erfolgreich durchgeführt:**
+  - Veröffentlichung auf `https://github.com/Schmitt-A/BarkDog` via GitHub-Token erfolgreich abgeschlossen.
+  - Lokaler `main`-Branch ist `up to date with 'origin/main'`.

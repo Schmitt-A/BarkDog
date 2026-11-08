@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+# ALSA Utilities für Mikrofonaufnahme (arecord)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    alsa-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Schlanke Machine-Learning Laufzeitumgebung (YAMNet TFLite + CNN14 ONNX)
+RUN pip install --no-cache-dir tflite-runtime "numpy<2" onnxruntime
+
+WORKDIR /app
+
+COPY yamnet.tflite /app/
+COPY public/model/assets/yamnet_class_map.csv /app/
+COPY detector.py /app/
+
+CMD ["python3", "-u", "detector.py"]

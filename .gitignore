@@ -1,0 +1,37 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Large ML models (>100MB exceeds GitHub upload limits)
+# Download with ./download_models.sh
+models/*.onnx
+models/*.pth
+models/*.pt
+models/*.bin
+!public/model/*.bin
+!yamnet.tflite
+!models/class_labels_indices.csv
+!models/.gitkeep
+
+# Runtime Data, Personal Datasets & Recorded Audio Clips
+data/recordings/
+data/dataset/
+data/*.json
+!data/settings.example.json
+data/*.tmp
+data/*.wav
+
+# Environment & local credentials
+.env
+.env.local
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

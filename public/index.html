@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarkDog Filou – 24/7 Hundebell-Erkennung</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐕</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 1. Header / Top Navigation -->
+        <header>
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.996 1 1.157-.365 2.035-1.08 2.704-1.828"/>
+                        <path d="M14 5.172C14 3.782 15.577 2.679 17.5 3c2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.996 1-1.157-.365-2.035-1.08-2.704-1.828"/>
+                        <path d="M8.5 8.5v.01"/>
+                        <path d="M15.5 8.5v.01"/>
+                        <path d="M12 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+                        <path d="M10 15c.5.5 1.2.8 2 .8s1.5-.3 2-.8"/>
+                        <path d="M12 21c4.97 0 9-3.582 9-8a8.96 8.96 0 0 0-1.874-5.464C18.258 7.202 17.025 7 16 7c-1.395 0-2.693.366-3.8.99C11.093 7.366 9.795 7 8.4 7c-1.025 0-2.258.202-3.126.536A8.96 8.96 0 0 0 3 13c0 4.418 4.03 8 9 8Z"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>
+                        BarkDog Filou
+                        <span class="brand-badge">2-Stufen Audio-KI</span>
+                    </h1>
+                    <p>Autonome 24/7 Hundebell-Erkennung am Server (YAMNet + CNN14)</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <!-- Status-Pille -->
+                <div id="statusBadge" class="status-badge ready status-pill">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Verbinde...</span>
+                </div>
+
+                <!-- KI-Trainer Button -->
+                <button id="openTrainerBtn" class="btn btn-secondary btn-trainer" title="Filou KI-Trainer öffnen (Modell durch Bewertung verbessern)">
+                    <span class="trainer-btn-icon">🎓</span>
+                    <span>KI trainieren</span>
+                    <span id="trainerCountBadge" class="badge-trainer" style="display: none;">0</span>
+                </button>
+
+                <!-- Papierkorb-Button -->
+                <button id="openTrashBtn" class="btn btn-secondary" title="Papierkorb öffnen">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Papierkorb (<span id="trashCountBadge">0</span>)
+                </button>
+
+                <!-- Aktualisieren-Button -->
+                <button id="refreshDataBtn" class="btn btn-secondary" title="Daten jetzt neu laden">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    Aktualisieren
+                </button>
+            </div>
+        </header>
+
+        <!-- 2. Kompakte Server-Status- & Live-Pegelleiste -->
+        <div class="server-live-bar">
+            <div class="server-status-info">
+                <div class="pulse-indicator"></div>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">
+                        Server-Überwachung: <span id="serverStatusText" style="color: var(--success-dark);">Aktiv (24/7 Hintergrund)</span>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">
+                        Mikrofon: <strong id="serverDeviceName" style="color: var(--text-secondary);">USB-Webcam</strong> • Heartbeat: <span id="serverHeartbeat">–</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kompaktes Live-Pegelmeter -->
+            <div class="level-meter-compact" title="Live-Audio-Pegel des Server-Mikrofons">
+                <span id="levelDot" class="status-dot" style="background: var(--success);"></span>
+                <span style="font-weight: 500; color: var(--text-muted);">Live-Pegel:</span>
+                <strong id="levelPercentText" style="color: var(--text-primary); min-width: 32px;">0%</strong>
+                <div class="level-bar-track-compact">
+                    <div id="levelBarFill" class="level-bar-fill"></div>
+                </div>
+                <span id="levelDbfsText" style="color: var(--text-muted); font-size: 0.75rem;">-60.0 dBFS</span>
+                <span id="levelActivityText" style="display: none;">Ruhig</span>
+                <span id="levelPeakText" style="display: none;">Peak: 0</span>
+            </div>
+        </div>
+
+        <!-- 3. KPI-Übersicht (4 Stat-Kacheln direkt im Blick) -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-icon blue">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" x2="12" y1="19" y2="22"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div id="statTotalBarks" class="stat-value">0</div>
+                    <div class="stat-label">
+                        <span id="statTotalBarksLabel">Bestätigte Beller</span>
+                        <span id="statTotalEpisodesBadge" class="stat-sub-badge" style="display: none;">0 Serien</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-icon amber">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div id="kpiPeakTime" class="stat-value" style="font-size: 1.15rem; line-height: 1.3;">–</div>
+                    <div class="stat-label">Aktivste Phase</div>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-icon green">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div id="statLastDetection" class="stat-value" style="font-size: 1.15rem; line-height: 1.3;">–</div>
+                    <div class="stat-label">Letzter Beller</div>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-icon purple">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div id="statTopConfidence" class="stat-value">0%</div>
+                    <div class="stat-label">Höchste Konfidenz</div>
+                </div>
+            </div>
+
+            <!-- Unsichtbare KPIs für Rückwärtskompatibilität -->
+            <div id="kpiTotalBarks" style="display: none;">0</div>
+            <div id="kpiQuietTime" style="display: none;">–</div>
+            <div id="kpiMaxConfidence" style="display: none;">0%</div>
+        </div>
+
+        <!-- =========================================================================
+             HAUPTSEKTION 1: Beller-Protokoll (Server-Ereignisse) - IM VORDERGRUND!
+             ========================================================================= -->
+        <div class="log-section">
+            <div class="log-header">
+                <div class="card-title" style="margin-bottom: 0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"/>
+                        <line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/>
+                        <line x1="3" y1="6" x2="3.01" y2="6"/>
+                        <line x1="3" y1="12" x2="3.01" y2="12"/>
+                        <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                    Beller-Protokoll (Server-Ereignisse)
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <button id="exportCsvBtn" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" disabled>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        CSV-Export
+                    </button>
+                    <button id="clearLogBtn" class="btn btn-danger-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" disabled>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Leeren
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter-Leiste für das Protokoll -->
+            <div class="protocol-filters">
+                <!-- Zeitraum Filter -->
+                <div class="filter-group">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <span>Zeitraum:</span>
+                    <select id="filterTimeRange" class="custom-select">
+                        <option value="all">Alle Tage</option>
+                        <option value="today" selected>Heute</option>
+                        <option value="week">Diese Woche (7 Tage)</option>
+                        <option value="custom_day">Bestimmter Tag...</option>
+                    </select>
+                    <select id="filterCustomDay" class="custom-select" style="display: none;"></select>
+                </div>
+
+                <!-- Stufe 2 (CNN14) Schwellenwert-Slider & Exakte Werteeingabe -->
+                <div class="filter-group slider-filter-group">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" y1="21" x2="4" y2="14"/>
+                        <line x1="4" y1="10" x2="4" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12" y2="3"/>
+                        <line x1="20" y1="21" x2="20" y2="16"/>
+                        <line x1="20" y1="12" x2="20" y2="3"/>
+                        <line x1="1" y1="14" x2="7" y2="14"/>
+                        <line x1="9" y1="8" x2="15" y2="8"/>
+                        <line x1="17" y1="16" x2="23" y2="16"/>
+                    </svg>
+                    <span style="font-weight: 600;">Stufe 2 (CNN14) Schwelle:</span>
+                    <input type="range" id="cnn14Slider" min="0" max="100" step="1" value="0" class="custom-range-slider" title="Schieberegler für CNN14-Schwellenwert (1%-Schritte)">
+                    <div class="number-input-wrapper" title="Direkte exakte Werteeingabe in %">
+                        <input type="number" id="cnn14NumberInput" min="0" max="100" step="1" value="0" class="custom-number-input">
+                        <span>%</span>
+                    </div>
+                    <button id="saveCnn14ThresholdBtn" class="btn-save-threshold" title="Schwellenwert dauerhaft speichern (bleibt beim Neuladen und Server erhalten)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Speichern
+                    </button>
+                    <span id="cnn14SaveNotice" class="save-notice" style="display: none;">✓ Gespeichert</span>
+                </div>
+
+                <!-- Gruppierungs-Toggle (Zusammenhängende Beller zusammenfassen) -->
+                <div class="filter-group group-filter-group">
+                    <label class="group-toggle-label" title="Fasst Beller zusammen, wenn sie in kurzem Zeitabstand hintereinander auftraten (≤ 60s)">
+                        <input type="checkbox" id="groupEpisodesCheckbox" checked>
+                        <span>Serien gruppieren (≤ 60s)</span>
+                    </label>
+                </div>
+
+                <!-- Aktiver Diagramm-Balken Filter-Chip -->
+                <div id="activeChartFilterChip" class="filter-chip" style="display: none;">
+                    <span id="activeChartFilterLabel">📊 Diagramm-Filter</span>
+                    <button id="resetChartFilterBtn" class="chip-close-btn" title="Diagramm-Filter entfernen">✕</button>
+                </div>
+
+                <!-- Button zum Zurücksetzen aller Filter -->
+                <button id="resetAllFiltersBtn" class="reset-filters-btn" style="display: none;">
+                    ✕ Alle Filter aufheben
+                </button>
+
+                <div class="filter-stats">
+                    Zeige <strong id="filterShownCount" style="color: var(--text-primary);">0</strong> von <span id="filterTotalCount">0</span> Bellern <span id="filterEpisodeStats" style="display: none; color: var(--text-muted); font-size: 0.82rem; margin-left: 0.25rem;">(in <strong>0</strong> Serien)</span>
+                </div>
+            </div>
+
+            <!-- Tabelle -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 105px;">Datum</th>
+                            <th style="width: 155px;">Zeitraum / Uhrzeit</th>
+                            <th style="width: 165px;">Stufe 1: YAMNet (Vorfilter)</th>
+                            <th style="width: 215px;">Stufe 2: CNN14 Verifier</th>
+                            <th style="width: 155px; text-align: center;">Audio</th>
+                            <th style="width: 65px; text-align: center;">Löschen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem 1rem;">
+                                Noch keine Hunde-Beller protokolliert. Der Server lauscht 24/7 über das USB-Mikrofon.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- =========================================================================
+             HAUPTSEKTION 2: Diagramm-Auswertung & Bell-Statistik
+             ========================================================================= -->
+        <div class="analytics-section">
+            <div class="analytics-header">
+                <div class="card-title" style="margin-bottom: 0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <line x1="8" y1="17" x2="8" y2="10"/>
+                        <line x1="12" y1="17" x2="12" y2="6"/>
+                        <line x1="16" y1="17" x2="16" y2="13"/>
+                    </svg>
+                    Diagramm-Auswertung & Bell-Statistik
+                </div>
+                <div class="analytics-tabs">
+                    <button id="tabDayBtn" class="tab-btn active">📅 Tagesverlauf (24h)</button>
+                    <button id="tabWeekBtn" class="tab-btn">📆 Wochenübersicht (7 Tage)</button>
+                </div>
+            </div>
+
+            <!-- Filter-Leiste für Tagesverlauf -->
+            <div id="dayFilterBar" class="filter-bar">
+                <label for="dateSelect" style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">Tag auswählen:</label>
+                <select id="dateSelect" class="custom-select"></select>
+                <button id="btnSelectToday" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Heute</button>
+            </div>
+
+            <!-- Bell-Statistik Mini-Cards direkt in der Diagramm-Sektion -->
+            <div class="chart-stats-grid">
+                <div class="chart-stat-item">
+                    <span class="chart-stat-label" id="chartStatTotalLabel">Beller am Tag</span>
+                    <span class="chart-stat-val" id="chartStatTotalVal">0</span>
+                </div>
+                <div class="chart-stat-item">
+                    <span class="chart-stat-label" id="chartStatPeakLabel">Aktivste Stunde</span>
+                    <span class="chart-stat-val" id="chartStatPeakVal">–</span>
+                </div>
+                <div class="chart-stat-item">
+                    <span class="chart-stat-label" id="chartStatQuietLabel">Ruhigste Phase</span>
+                    <span class="chart-stat-val" id="chartStatQuietVal">–</span>
+                </div>
+                <div class="chart-stat-item">
+                    <span class="chart-stat-label" id="chartStatConfLabel">Höchste Konfidenz</span>
+                    <span class="chart-stat-val" id="chartStatConfVal">0%</span>
+                </div>
+            </div>
+
+            <!-- Diagramm-Container -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <div>
+                        <span id="chartHeading">Stündliche Verteilung der Beller (24h)</span>
+                        <div id="chartSubheading" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Uhrzeit (00:00 - 23:59)</div>
+                    </div>
+                    <div class="chart-hints">
+                        <span id="chartMobileScrollHint" class="chart-mobile-scroll-hint" style="display: none;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                            24h wischbar
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </span>
+                        <span id="chartClickHint" style="font-size: 0.78rem; color: var(--accent); font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 15l5 5m-5-5v4m0-4h4"/>
+                                <path d="M9 9l-5-5m5 5v-4m0 4h-4"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            Balken anklicken zum Filtern
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Scroll-fähiger Wrapper für flüssige Mobile-Bedienung -->
+                <div id="chartScrollWrapper" class="chart-scroll-wrapper day-mode">
+                    <div id="chartContainer" class="chart-inner-container">
+                        <!-- SVG Chart wird per app.js dynamisch gerendert -->
+                    </div>
+                </div>
+
+                <!-- Mobiles aktives Filter-Banner (erscheint nach Antippen eines Balkens) -->
+                <div id="chartActiveFilterBanner" class="chart-active-filter-banner" style="display: none;">
+                    <div class="banner-info">
+                        <span class="banner-icon">🎯</span>
+                        <span id="chartActiveFilterText">Filter aktiv</span>
+                    </div>
+                    <div class="banner-actions">
+                        <button id="btnJumpToLog" class="btn btn-primary btn-sm">Im Protokoll ansehen ↑</button>
+                        <button id="btnResetChartFilter" class="btn btn-secondary btn-sm">✕ Aufheben</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================================
+             SEKTION 3: Hardware-Details & Sofort-Test (Kompakt am Seitenende)
+             ========================================================================= -->
+        <div class="hardware-section">
+            <div class="card-title" style="margin-bottom: 0.75rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                Audio-Hardware & Testwerkzeuge
+            </div>
+
+            <div class="grid">
+                <!-- Info: Hardware-Quelle -->
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; font-size: 0.85rem;">
+                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">24/7 Hintergrund-Detektor</div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <span style="color: var(--text-muted);">Audioquelle:</span>
+                        <span id="infoAudioSource" style="color: var(--text-primary); font-weight: 500;">WEB CAM (ALSA 16kHz)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <span style="color: var(--text-muted);">Inferenz:</span>
+                        <span style="color: var(--text-primary); font-weight: 500;">Stufe 1 (YAMNet) + Stufe 2 (CNN14 ONNX)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Betrieb:</span>
+                        <span style="color: var(--success-dark); font-weight: 600;">Autonom 24/7 am Server</span>
+                    </div>
+                </div>
+
+                <!-- Test & Upload -->
+                <div>
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <button id="demoAudioBtn" class="btn btn-secondary" style="flex: 1; font-size: 0.8rem;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polygon points="10 8 16 12 10 16 10 8"/>
+                            </svg>
+                            Demo-Bellen testen
+                        </button>
+                    </div>
+
+                    <div id="dropZone" class="dropzone">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Audiodatei ablegen oder wählen</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">WAV, MP3, OGG</div>
+                        <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================================
+             MODAL: Papierkorb (Letzte 20 Clips)
+             ========================================================================= -->
+        <div id="trashModal" class="modal-overlay" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Papierkorb (<span id="modalTrashCount">0</span>/20 Clips)
+                        </div>
+                        <div class="modal-subtitle">
+                            Von CNN14 verworfene Fehlalarme & manuell entfernte Clips. Älteste Aufnahmen (>20) werden automatisch bereinigt.
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button id="clearTrashBtn" class="btn btn-danger-outline" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">
+                            Papierkorb leeren
+                        </button>
+                        <button id="closeTrashBtn" class="modal-close-btn" title="Schließen">✕</button>
+                    </div>
+                </div>
+
+                <div class="table-container" style="max-height: 450px; border-radius: 0; border: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 130px;">Zeitpunkt</th>
+                                <th style="width: 160px;">YAMNet Vorfilter</th>
+                                <th>CNN14 Einstufung / Grund</th>
+                                <th style="width: 100px;">Audio</th>
+                                <th style="width: 160px; text-align: center;">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trashTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem 1rem;">
+                                    Der Papierkorb ist aktuell leer.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================================
+             MODAL: Filou KI-Trainer (Schnell-Klassifizierung & Active Learning)
+             ========================================================================= -->
+        <div id="trainerModal" class="modal-overlay" style="display: none;">
+            <div class="modal-card trainer-modal-card">
+                <div class="modal-header trainer-modal-header">
+                    <div class="trainer-title-group">
+                        <div class="modal-title">
+                            <span style="font-size: 1.25rem;">🐕</span> Filou KI-Trainer
+                        </div>
+                        <span id="trainerProgressText" class="trainer-progress-text">Lade Queue...</span>
+                    </div>
+                    <button id="closeTrainerBtn" class="modal-close-btn" title="Schließen">✕</button>
+                </div>
+
+                <!-- Fortschrittsbalken -->
+                <div class="trainer-progress-bar">
+                    <div id="trainerProgressBarFill" class="trainer-progress-fill" style="width: 0%;"></div>
+                </div>
+
+                <!-- Lernfortschritts-Statistik -->
+                <div class="trainer-stats-strip">
+                    <div class="trainer-stat-pill green">
+                        <span class="dot"></span>
+                        <span id="trainerStatBarks">0</span> Filou-Beller bestätigt
+                    </div>
+                    <div class="trainer-stat-pill red">
+                        <span class="dot"></span>
+                        <span id="trainerStatNoise">0</span> Fehlalarme gelernt
+                    </div>
+                    <div id="trainerLevelPill" class="trainer-stat-pill blue" title="Modell-Reifegrad">
+                        🏆 Level 2
+                    </div>
+                    <div id="trainerDiscriminationPill" class="trainer-stat-pill purple" title="Modell-Treffsicherheit">
+                        🎯 74% Zuverlässigkeit
+                    </div>
+                </div>
+
+                <!-- Quellen-Umschalter für die Trainings-Queue -->
+                <div class="trainer-source-strip">
+                    <span class="source-label">Clips aus:</span>
+                    <button class="source-tab-btn active" data-source="all">
+                        Alle unbewerteten (<span id="queueCountAll">0</span>)
+                    </button>
+                    <button class="source-tab-btn" data-source="trash">
+                        Nur Papierkorb (<span id="queueCountTrash">0</span>)
+                    </button>
+                    <button class="source-tab-btn" data-source="events">
+                        Nur Protokoll (<span id="queueCountEvents">0</span>)
+                    </button>
+                </div>
+
+                <div class="modal-body trainer-modal-body">
+                    <!-- Leer-Zustand (wenn alle bewertet) -->
+                    <div id="trainerEmptyState" style="display: none; text-align: center; padding: 2.5rem 1rem;">
+                        <div style="font-size: 3rem; margin-bottom: 0.75rem;">🎉</div>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">Alle Clips bewertet!</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 420px; margin: 0 auto 1.5rem auto;">
+                            Großartig! Filous Stimmprofil wurde aktualisiert. Neue Beller werden nun mit deiner persönlichen Stimm-Referenz abgeglichen.
+                        </p>
+                        <button id="btnTrainerDone" class="btn btn-primary" style="padding: 0.55rem 1.4rem;">Zurück zum Dashboard</button>
+                    </div>
+
+                    <!-- Aktive Review-Card -->
+                    <div id="trainerCard" class="trainer-review-card">
+                        <!-- Metadaten des aktuellen Clips -->
+                        <div class="trainer-clip-meta">
+                            <div class="clip-time-box">
+                                <span id="trainerClipTime" class="clip-time">--:--:--</span>
+                                <span id="trainerClipDate" class="clip-date">--.--.----</span>
+                                <span id="trainerClipSourceBadge" class="trainer-source-badge">Protokoll</span>
+                            </div>
+                            <div class="clip-scores-box">
+                                <span id="trainerYamnetScore" class="score-pill blue">YAMNet: --%</span>
+                                <span id="trainerCnn14Score" class="score-pill purple">CNN14: --%</span>
+                            </div>
+                        </div>
+
+                        <!-- Grund für bisherige Einstufung -->
+                        <div id="trainerClipReason" class="trainer-reason-box">
+                            Von CNN14 als Fehlalarm verworfen: ...
+                        </div>
+
+                        <!-- Live KI-Vorhersage mit aktuellem Stimmprofil -->
+                        <div id="trainerAiPredictionBox" class="trainer-ai-prediction-box">
+                            <div class="ai-pred-header">
+                                <span class="ai-pred-icon">🤖</span>
+                                <span class="ai-pred-title">Aktuelle KI-Vorhersage:</span>
+                                <span id="trainerAiPredBadge" class="ai-pred-badge badge-neutral">Prüft Stimme...</span>
+                            </div>
+                            <div id="trainerAiPredDetail" class="ai-pred-detail">
+                                Gleicht Frequenzen und Stimmprofil mit Filous Mustern ab...
+                            </div>
+                        </div>
+
+                        <!-- Großer Audio-Player -->
+                        <div class="trainer-player-box">
+                            <button id="trainerPlayBtn" class="trainer-play-button" title="Clip in Endlosschleife abspielen / pausieren">
+                                <svg id="trainerPlayIcon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="5 3 19 12 5 21 5 3"/>
+                                </svg>
+                            </button>
+                            <div class="player-info">
+                                <span id="trainerPlayerStatus" class="player-status-text">Klicke zum Anhören (Endlosschleife)</span>
+                                <div class="player-settings">
+                                    <label class="auto-play-label">
+                                        <input type="checkbox" id="trainerAutoPlayCheckbox" checked>
+                                        <span>Auto-Play</span>
+                                    </label>
+                                    <span class="loop-badge" title="Clip wiederholt sich automatisch in Dauerschleife bis zur Entscheidung">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <polyline points="17 1 21 5 17 9"/>
+                                            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                                            <polyline points="7 23 3 19 7 15"/>
+                                            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                                        </svg>
+                                        Endlosschleife aktiv
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Die zwei Haupt-Entscheidungsbuttons -->
+                        <div class="trainer-decision-grid">
+                            <button id="btnVoteNo" class="trainer-vote-btn vote-no" title="Kein Bellen (Taste: N oder ←)">
+                                <div class="vote-icon">❌</div>
+                                <div class="vote-text">
+                                    <strong>Nein</strong>
+                                    <span>Kein Bellen (Fehlalarm)</span>
+                                </div>
+                                <span class="hotkey-hint">[ N / ← ]</span>
+                            </button>
+
+                            <button id="btnVoteYes" class="trainer-vote-btn vote-yes" title="Filou bellt! (Taste: J oder →)">
+                                <div class="vote-icon">✅</div>
+                                <div class="vote-text">
+                                    <strong>Ja, Beller!</strong>
+                                    <span>Filou hat gebellt</span>
+                                </div>
+                                <span class="hotkey-hint">[ J / → ]</span>
+                            </button>
+                        </div>
+
+                        <!-- Hilfsleiste unten: Überspringen & Tipp -->
+                        <div class="trainer-card-footer">
+                            <button id="btnVoteSkip" class="btn btn-secondary btn-sm" title="Diesen Clip überspringen">
+                                Überspringen ⏩
+                            </button>
+                            <span class="keyboard-tip">💡 Tipp: Tastatur <strong>[← N]</strong> oder <strong>[→ J]</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Modell-Lernkurve & Verbesserung über die Zeit -->
+                    <div class="trainer-learning-section">
+                        <div class="learning-header" id="toggleLearningCurveBtn" role="button" tabindex="0">
+                            <div class="learning-title">
+                                <span>📈 Modell-Lernkurve & Verbesserung über die Zeit</span>
+                                <span id="learningLevelSubtitle" class="learning-subtitle">Level 2 • 20 trainierte Muster</span>
+                            </div>
+                            <span id="learningCurveToggleIcon" class="learning-toggle-icon">▼</span>
+                        </div>
+                        <div id="learningCurveBody" class="learning-body" style="display: none;">
+                            <div class="level-progress-wrapper">
+                                <div class="level-progress-info">
+                                    <span id="levelProgressText">Fortschritt zum nächsten Level</span>
+                                    <span id="levelProgressPct">67%</span>
+                                </div>
+                                <div class="level-progress-track">
+                                    <div id="levelProgressFill" class="level-progress-fill" style="width: 67%;"></div>
+                                </div>
+                            </div>
+                            <div class="learning-history-title">Gelerntes Stimmprofil im Zeitverlauf:</div>
+                            <div class="learning-history-chart" id="learningHistoryChart">
+                                <!-- Dynamische Verlaufskacheln per app.js -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            BarkDog Filou • 2-Stufen Audio-KI (YAMNet + CNN14) • 24/7 Server-Hintergrundüberwachung • 100% Local-First
+        </footer>
+    </div>
+
+    <!-- Lokale Scripts -->
+    <script src="libs/tf.min.js"></script>
+    <script src="libs/yamnet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "cnn14Threshold": 0.45,
+  "cnn14ThresholdPct": 45.0,
+  "sensitivity": 0.25
+}
